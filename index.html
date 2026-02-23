@@ -96,10 +96,6 @@
 
   <input type="hidden" id="codigo_unico">
 <div class="loader" id="loader"></div>
-<div class="form-group">
-  <label>Sube tu foto (tipo documento)</label>
-  <input type="file" id="foto" accept="image/*" required>
-</div>
   <button type="submit">Registrarme</button>
 
 </form>
@@ -129,16 +125,14 @@ window.onload = generarCodigo;
 </script>
 
 <script type="module">
-  import { initializeApp } 
-from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-
-import { getFirestore, collection, addDoc } 
-from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
-
-import { getStorage, ref, uploadBytes, getDownloadURL } 
-from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
-
-
+  
+  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+  
+  const db = getFirestore(app);
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
   // Your web app's Firebase configuration
   const firebaseConfig = {
     apiKey: "AIzaSyCkLv5ntZlYTjzeZq18wUir7oiHghcK6pE",
@@ -151,58 +145,36 @@ from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
 
   // Initialize Firebase
   const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  const storage = getStorage(app);
-
   const formulario = document.getElementById("miFormulario");
 
   formulario.addEventListener("submit", async (e) => {
-  e.preventDefault();
+    e.preventDefault();
+document.querySelector(".progress").style.width = "100%";
+document.getElementById("loader").style.display = "block";
+    try {
+      await addDoc(collection(db, "registros"), {
+        nombre: document.getElementById("nombre").value,
+        cedula: document.getElementById("cedula").value,
+        telefono: document.getElementById("telefono").value,
+        ciudad: document.getElementById("ciudad").value,
+        direccion: document.getElementById("direccion").value,
+        edad: document.getElementById("edad").value,
+        genero: document.getElementById("genero").value,
+        correo: document.getElementById("correo").value,
+        talla: document.getElementById("talla").value,
+        codigo_unico: document.getElementById("codigo_unico").value,
+        fecha: new Date(),
+        fuente: document.getElementById("fuente").value,
+otra_fuente: document.getElementById("otra_fuente").value,
+      });
 
-  const loader = document.getElementById("loader");
-  const progress = document.querySelector(".progress");
-  loader.style.display = "block";
-  progress.style.width = "100%";
+      window.location.href = "gracias.html";
 
-  try {
-    const archivo = document.getElementById("foto").files[0];
-
-    // Crear referencia única en Storage
-    const storageRef = ref(storage, "fotos/" + Date.now() + "_" + archivo.name);
-
-    // Subir archivo
-    await uploadBytes(storageRef, archivo);
-
-    // Obtener URL pública
-    const fotoURL = await getDownloadURL(storageRef);
-
-    // Guardar datos en Firestore
-    await addDoc(collection(db, "registros"), {
-      nombre: nombre.value.trim(),
-      cedula: cedula.value.trim(),
-      telefono: telefono.value.trim(),
-      ciudad: ciudad.value.trim(),
-      direccion: direccion.value.trim(),
-      edad: parseInt(edad.value),
-      genero: genero.value,
-      correo: correo.value.trim(),
-      talla: talla.value,
-      codigo_unico: codigo_unico.value,
-      fecha: new Date(),
-      fuente: fuente.value,
-      otra_fuente: otra_fuente.value.trim(),
-      foto: fotoURL   // 🔥 AQUÍ guardamos la URL
-    });
-
-    window.location.href = "gracias.html";
-
-  } catch (error) {
-    loader.style.display = "none";
-    progress.style.width = "0%";
-    alert("Error al enviar el formulario");
-    console.error(error);
-  }
-});
+    } catch (error) {
+      alert("Error al enviar el formulario");
+      console.error(error);
+    }
+  });
 </script>
 
 </body>
