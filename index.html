@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Formulario de Registro</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+
+  <div class="container">
+    <img src="logo.png" alt="Logo Empresa" class="logo">
+
+    <h1>Formulario de Registro</h1>
+    <p>Has sido seleccionado, por favor llena todos los datos para subirte a nuestro sistema.</p>
+<div class="progress-bar">
+  <div class="progress"></div>
+</div>
+<form id="miFormulario">
+
+
+<div class="form-group icon-input">
+  <i class="fa fa-user"></i>
+  <input type="text" id="nombre" placeholder="Nombre completo" required>
+</div>
+
+<div class="form-group icon-input">
+  <i class="fa fa-id-card"></i>
+  <input type="number" id="cedula" placeholder="Numero de Cedula" required>
+</div>
+
+<div class="form-group icon-input">
+  <i class="fa fa-phone"></i>
+  <input type="tel" id="telefono" placeholder="Numero de telefono" required>
+</div>
+<div class="form-group icon-input">
+  <i class="fa fa-city"></i>
+  <input type="text" id="ciudad" placeholder="Ciudad" required>
+</div>
+
+<div class="form-group icon-input">
+  <i class="fa fa-map-marker-alt"></i>
+  <input type="text" id="direccion" placeholder="Dirección de residencia" required>
+</div>
+
+<div class="form-group icon-input">
+  <i class="fa fa-calendar"></i>
+  <input type="number" id="edad" placeholder="Edad" min="18" max="70" required>
+</div>
+<div class="form-group icon-input">
+  <i class="fa fa-envelope"></i>
+  <input type="email" id="correo" placeholder="Correo electronico" required>
+</div>
+
+  <div class="form-group">
+    <label for="genero">Seleccione su género</label>
+    <select id="genero" required>
+      <option value="">Seleccione una opción</option>
+      <option value="Masculino">Masculino</option>
+      <option value="Femenino">Femenino</option>
+      <option value="Prefiero no decirlo">Prefiero no decirlo</option>
+    </select>
+  </div>
+
+
+
+  <div class="form-group">
+    <label for="talla">Seleccione su talla</label>
+    <select id="talla" required>
+      <option value="">Seleccione una opción</option>
+      <option value="XS">XS</option>
+      <option value="S">S</option>
+      <option value="M">M</option>
+      <option value="L">L</option>
+      <option value="XL">XL</option>
+      <option value="XXL">XXL</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="fuente">¿Dónde encontraste la oferta?</label>
+    <select id="fuente" required>
+      <option value="">Seleccione una opción</option>
+      <option value="Redes sociales">Redes sociales</option>
+      <option value="Periódico">Periódico</option>
+      <option value="Página de empleo">Página de empleo</option>
+      <option value="Amigo o conocido">Amigo o conocido</option>
+      <option value="Otra">Otra</option>
+    </select>
+  </div>
+
+  <div class="form-group" id="otraFuenteGroup" style="display:none;">
+    <input type="text" id="otra_fuente" placeholder="Si seleccionaste otra, ¿cuál?">
+  </div>
+
+  <input type="hidden" id="codigo_unico">
+<div class="loader" id="loader"></div>
+<div class="form-group">
+  <label>Sube tu foto (tipo documento)</label>
+  <input type="file" id="foto" accept="image/*" required>
+</div>
+  <button type="submit">Registrarme</button>
+
+</form>
+  </div>
+<script>
+document.getElementById("fuente").addEventListener("change", function() {
+  const otraGroup = document.getElementById("otraFuenteGroup");
+  const otraInput = document.getElementById("otra_fuente");
+
+  if (this.value === "Otra") {
+    otraGroup.style.display = "block";
+    otraInput.required = true;
+  } else {
+    otraGroup.style.display = "none";
+    otraInput.required = false;
+    otraInput.value = "";
+  }
+});
+</script>
+<script>
+function generarCodigo() {
+  const codigo = 'LOG-' + Date.now();
+  document.getElementById("codigo_unico").value = codigo;
+  localStorage.setItem("codigoUsuario", codigo);
+}
+window.onload = generarCodigo;
+</script>
+
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyCkLv5ntZlYTjzeZq18wUir7oiHghcK6pE",
+    authDomain: "registro-cine-1c562.firebaseapp.com",
+    projectId: "registro-cine-1c562",
+    storageBucket: "registro-cine-1c562.firebasestorage.app",
+    messagingSenderId: "351302347628",
+    appId: "1:351302347628:web:01494bec1c64e8bd522149"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const storage = getStorage(app);
+
+  const formulario = document.getElementById("miFormulario");
+
+  formulario.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const loader = document.getElementById("loader");
+  const progress = document.querySelector(".progress");
+  loader.style.display = "block";
+  progress.style.width = "100%";
+
+  try {
+    const archivo = document.getElementById("foto").files[0];
+
+    // Crear referencia única en Storage
+    const storageRef = ref(storage, "fotos/" + Date.now() + "_" + archivo.name);
+
+    // Subir archivo
+    await uploadBytes(storageRef, archivo);
+
+    // Obtener URL pública
+    const fotoURL = await getDownloadURL(storageRef);
+
+    // Guardar datos en Firestore
+    await addDoc(collection(db, "registros"), {
+      nombre: nombre.value.trim(),
+      cedula: cedula.value.trim(),
+      telefono: telefono.value.trim(),
+      ciudad: ciudad.value.trim(),
+      direccion: direccion.value.trim(),
+      edad: parseInt(edad.value),
+      genero: genero.value,
+      correo: correo.value.trim(),
+      talla: talla.value,
+      codigo_unico: codigo_unico.value,
+      fecha: new Date(),
+      fuente: fuente.value,
+      otra_fuente: otra_fuente.value.trim(),
+      foto: fotoURL   // 🔥 AQUÍ guardamos la URL
+    });
+
+    window.location.href = "gracias.html";
+
+  } catch (error) {
+    loader.style.display = "none";
+    progress.style.width = "0%";
+    alert("Error al enviar el formulario");
+    console.error(error);
+  }
+});
+</script>
+
+</body>
+</html>
